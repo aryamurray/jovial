@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use jovial_ast::go::{GoNode, GoReceiver, GoType, GoUnaryOp};
 use jovial_ast::java::{JavaNode, JavaType, Modifier};
 use jovial_ast::span::Span;
@@ -9,7 +7,7 @@ use crate::default_convert::DefaultConverter;
 use crate::walker::WalkError;
 
 pub(crate) fn convert_class_decl(
-    converter: &DefaultConverter,
+    _converter: &DefaultConverter,
     name: &str,
     members: &[JavaNode],
     span: &Span,
@@ -17,14 +15,6 @@ pub(crate) fn convert_class_decl(
 ) -> Result<Vec<GoNode>, WalkError> {
     let mut fields = Vec::new();
     let mut methods = Vec::new();
-
-    // Collect field names so NameExpr can resolve bare field references
-    let mut field_names: HashSet<String> = HashSet::new();
-    for member in members {
-        if let JavaNode::FieldDecl { name: field_name, .. } = member {
-            field_names.insert(field_name.clone());
-        }
-    }
 
     for member in members {
         match member {
@@ -42,7 +32,9 @@ pub(crate) fn convert_class_decl(
                 });
             }
             _ => {
-                let converted = converter.walk_in_class(member, walk_child, name, &field_names)?;
+                // walk_child goes through the Walker which handles both
+                // plugin dispatch and class context threading.
+                let converted = walk_child(member)?;
                 methods.extend(converted);
             }
         }

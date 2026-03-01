@@ -19,6 +19,8 @@ jovial-codegen = { workspace = true }
 
 # Builtin plugins
 jovial-plugin-java-collections = { workspace = true }
+jovial-plugin-java-strings = { workspace = true }
+jovial-plugin-java-io = { workspace = true }
 
 clap = { workspace = true }
 serde = { workspace = true }

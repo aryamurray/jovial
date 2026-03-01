@@ -16,22 +16,6 @@ impl DefaultConverter {
         Self
     }
 
-    /// Walk a child node within a class context, threading `current_class`
-    /// and the class's field names through all descendants so `this` resolves
-    /// to the correct receiver and bare field names get prefixed.
-    pub(crate) fn walk_in_class<'a>(
-        &'a self,
-        node: &JavaNode,
-        walk_child: &'a dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
-        class_name: &'a str,
-        class_fields: &'a HashSet<String>,
-    ) -> Result<Vec<GoNode>, WalkError> {
-        let class_walk = |child: &JavaNode| -> Result<Vec<GoNode>, WalkError> {
-            self.walk_in_class(child, walk_child, class_name, class_fields)
-        };
-        self.convert(node, &class_walk, Some(class_name), Some(class_fields))
-    }
-
     /// Convert a Java AST node to Go AST node(s) using basic mechanical translation.
     pub fn convert(
         &self,

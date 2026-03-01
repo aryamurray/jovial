@@ -4,6 +4,8 @@ use jovial_plugin::registry::PluginRegistry;
 use jovial_plugin::traits::Plugin;
 
 use jovial_plugin_java_collections::JavaCollectionsPlugin;
+use jovial_plugin_java_io::JavaIoPlugin;
+use jovial_plugin_java_strings::JavaStringsPlugin;
 
 use crate::config::PluginRef;
 
@@ -21,6 +23,8 @@ pub fn load_plugins(plugin_refs: &[PluginRef]) -> PluginRegistry {
 
     let mut builtins: HashMap<&str, Box<dyn Plugin>> = HashMap::new();
     builtins.insert("java-collections", Box::new(JavaCollectionsPlugin));
+    builtins.insert("java-strings", Box::new(JavaStringsPlugin));
+    builtins.insert("java-io", Box::new(JavaIoPlugin));
 
     for pref in plugin_refs {
         if !pref.enabled {

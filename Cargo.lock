@@ -395,6 +395,8 @@ dependencies = [
  "jovial-parser",
  "jovial-plugin",
  "jovial-plugin-java-collections",
+ "jovial-plugin-java-io",
+ "jovial-plugin-java-strings",
  "jovial-walker",
  "log",
  "serde",
@@ -464,6 +466,22 @@ dependencies = [
 
 [[package]]
 name = "jovial-plugin-java-collections"
+version = "0.1.0"
+dependencies = [
+ "jovial-ast",
+ "jovial-plugin",
+]
+
+[[package]]
+name = "jovial-plugin-java-io"
+version = "0.1.0"
+dependencies = [
+ "jovial-ast",
+ "jovial-plugin",
+]
+
+[[package]]
+name = "jovial-plugin-java-strings"
 version = "0.1.0"
 dependencies = [
  "jovial-ast",

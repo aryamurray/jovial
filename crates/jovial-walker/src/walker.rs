@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use thiserror::Error;
 
 use jovial_ast::go::GoNode;
-use jovial_ast::java::JavaCompilationUnit;
+use jovial_ast::java::{JavaCompilationUnit, JavaNode};
 use jovial_ast::type_resolver::TypeResolver;
 use jovial_plugin::context::{MatchContext, TransformContext};
 use jovial_plugin::registry::PluginRegistry;
@@ -63,9 +63,29 @@ impl<'a> Walker<'a> {
     }
 
     /// Walk a single Java node.
-    pub fn walk_node(
+    pub fn walk_node(&self, node: &JavaNode) -> Result<Vec<GoNode>, WalkError> {
+        self.walk_node_internal(node, None, None)
+    }
+
+    /// Walk a single Java node within a class context.
+    ///
+    /// Plugin dispatch happens first. If no plugin matches, the default
+    /// converter handles the node with the class context threaded through
+    /// so that `this` and bare field names resolve correctly.
+    pub fn walk_node_in_class(
         &self,
-        node: &jovial_ast::java::JavaNode,
+        node: &JavaNode,
+        class_name: &str,
+        class_fields: &HashSet<String>,
+    ) -> Result<Vec<GoNode>, WalkError> {
+        self.walk_node_internal(node, Some(class_name), Some(class_fields))
+    }
+
+    fn walk_node_internal(
+        &self,
+        node: &JavaNode,
+        class_name: Option<&str>,
+        class_fields: Option<&HashSet<String>>,
     ) -> Result<Vec<GoNode>, WalkError> {
         // 1. Try plugin dispatch
         let ctx = MatchContext {
@@ -75,8 +95,10 @@ impl<'a> Walker<'a> {
         };
 
         if let Some(plugin) = self.registry.find_match(&ctx) {
-            let walk_fn = |child: &jovial_ast::java::JavaNode| -> Result<Vec<GoNode>, jovial_plugin::error::PluginError> {
-                self.walk_node(child).map_err(|e| jovial_plugin::error::PluginError::WalkError(e.to_string()))
+            // Plugin walk_child preserves class context
+            let walk_fn = |child: &JavaNode| -> Result<Vec<GoNode>, jovial_plugin::error::PluginError> {
+                self.walk_node_internal(child, class_name, class_fields)
+                    .map_err(|e| jovial_plugin::error::PluginError::WalkError(e.to_string()))
             };
             let mut transform_ctx =
                 TransformContext::new(node, self.type_resolver, self.config, &walk_fn);
@@ -85,9 +107,33 @@ impl<'a> Walker<'a> {
             return Ok(result);
         }
 
-        // 2. Fall back to default converter
-        self.default_converter
-            .convert(node, &|child| self.walk_node(child), None, None)
+        // 2. For ClassDecl, extract field names and establish class context
+        //    so that children get both plugin dispatch AND class context.
+        if let JavaNode::ClassDecl { name, members, .. } = node {
+            let mut field_names = HashSet::new();
+            for member in members {
+                if let JavaNode::FieldDecl {
+                    name: field_name, ..
+                } = member
+                {
+                    field_names.insert(field_name.clone());
+                }
+            }
+            return self.default_converter.convert(
+                node,
+                &|child| self.walk_node_internal(child, Some(name), Some(&field_names)),
+                Some(name),
+                Some(&field_names),
+            );
+        }
+
+        // 3. Fall back to default converter with inherited class context
+        self.default_converter.convert(
+            node,
+            &|child| self.walk_node_internal(child, class_name, class_fields),
+            class_name,
+            class_fields,
+        )
     }
 }
 
@@ -577,8 +623,8 @@ mod tests {
             if let Some(GoNode::ReturnStmt { values, .. }) = body.first() {
                 if let Some(GoNode::SelectorExpr { object, field, .. }) = values.first() {
                     assert_eq!(field, "Name");
-                    // With walk_in_class, the class context is threaded through,
-                    // so "this" resolves to the receiver name "p" (first char of "Person").
+                    // The walker threads class context through, so "this"
+                    // resolves to the receiver name "p" (first char of "Person").
                     if let GoNode::Ident { name, .. } = object.as_ref() {
                         assert_eq!(name, "p");
                     } else {

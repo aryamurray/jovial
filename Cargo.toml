@@ -10,6 +10,8 @@ members = [
     "crates/jovial-codegen",
     "crates/jovial-cli",
     "plugins/builtin/java-collections",
+    "plugins/builtin/java-strings",
+    "plugins/builtin/java-io",
     "plugin-sdk/examples/minimal",
     "plugin-sdk/examples/apache-httpclient",
 ]
@@ -31,6 +33,8 @@ jovial-codegen = { path = "crates/jovial-codegen" }
 
 # Builtin plugins
 jovial-plugin-java-collections = { path = "plugins/builtin/java-collections" }
+jovial-plugin-java-strings = { path = "plugins/builtin/java-strings" }
+jovial-plugin-java-io = { path = "plugins/builtin/java-io" }
 
 # External dependencies
 serde = { version = "1", features = ["derive"] }

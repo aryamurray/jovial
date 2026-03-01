@@ -9,6 +9,7 @@ pub mod types;
 pub mod prelude {
     pub use jovial_ast::go::*;
     pub use jovial_ast::java::*;
+    pub use jovial_ast::span::Span;
     pub use jovial_ast::type_resolver::TypeResolver;
 
     pub use crate::context::{MatchContext, TransformContext};
