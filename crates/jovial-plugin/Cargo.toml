@@ -1,0 +1,11 @@
+[package]
+name = "jovial-plugin"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+jovial-ast = { workspace = true }
+jovial-manifest = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }

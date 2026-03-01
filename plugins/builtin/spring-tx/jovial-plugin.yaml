@@ -1,0 +1,6 @@
+name: spring-tx
+version: "0.1.0"
+description: "Transforms @Transactional into inline transaction management"
+author: "Jovial Contributors"
+java_packages:
+  - org.springframework.transaction

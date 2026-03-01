@@ -1,0 +1,6 @@
+name: jackson
+version: "0.1.0"
+description: "Transforms Jackson annotations to Go struct tags and encoding/json"
+author: "Jovial Contributors"
+java_packages:
+  - com.fasterxml.jackson

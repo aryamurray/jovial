@@ -1,0 +1,12 @@
+[package]
+name = "jovial-codegen"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+jovial-ast = { workspace = true }
+jovial-emitter = { workspace = true }
+jovial-manifest = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }

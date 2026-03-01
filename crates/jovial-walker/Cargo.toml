@@ -1,0 +1,11 @@
+[package]
+name = "jovial-walker"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+jovial-ast = { workspace = true }
+jovial-plugin = { workspace = true }
+log = { workspace = true }
+thiserror = { workspace = true }

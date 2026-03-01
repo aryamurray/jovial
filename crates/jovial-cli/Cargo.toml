@@ -1,0 +1,34 @@
+[package]
+name = "jovial-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "jovial"
+path = "src/main.rs"
+
+[dependencies]
+jovial-ast = { workspace = true }
+jovial-manifest = { workspace = true }
+jovial-plugin = { workspace = true }
+jovial-parser = { workspace = true }
+jovial-emitter = { workspace = true }
+jovial-walker = { workspace = true }
+jovial-codegen = { workspace = true }
+
+# Builtin plugins
+jovial-plugin-spring-web = { workspace = true }
+jovial-plugin-spring-data = { workspace = true }
+jovial-plugin-spring-tx = { workspace = true }
+jovial-plugin-guava = { workspace = true }
+jovial-plugin-jackson = { workspace = true }
+jovial-plugin-lombok = { workspace = true }
+jovial-plugin-slf4j = { workspace = true }
+
+clap = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }

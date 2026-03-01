@@ -1,0 +1,7 @@
+name: spring-web
+version: "0.1.0"
+description: "Transforms Spring @RestController endpoints to gin-gonic handlers"
+author: "Jovial Contributors"
+java_packages:
+  - org.springframework.web
+  - org.springframework.http

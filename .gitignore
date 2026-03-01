@@ -1,0 +1,25 @@
+/target
+**/*.rs.bk
+*.pdb
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/generated/
+
+# Plugin runtime
+plugins/community/*/
+!plugins/community/.gitkeep

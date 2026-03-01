@@ -1,0 +1,6 @@
+name: lombok
+version: "0.1.0"
+description: "Strips Lombok annotations, generates plain Go structs"
+author: "Jovial Contributors"
+java_packages:
+  - lombok

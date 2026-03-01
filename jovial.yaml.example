@@ -1,0 +1,31 @@
+# Jovial — Java-to-Go transpiler configuration
+# Copy this file to jovial.yaml and adjust for your project.
+
+# Path to the Java project root
+java_project: ./my-java-project
+
+# Output directory for generated Go code
+output_dir: ./generated
+
+# Go module path for the generated project
+go_module: github.com/myorg/myproject
+
+# Plugins to enable (builtin plugins are always available)
+plugins:
+  - spring-web
+  - spring-data
+  - spring-tx
+  - jackson
+  - lombok
+  - slf4j
+  # - guava  # uncomment if your project uses Guava
+
+# Plugin-specific configuration
+plugin_config:
+  spring-web:
+    router: gin  # gin (default)
+  spring-data:
+    orm: gorm    # gorm (default)
+
+# Manifest file (output of JVM extractor)
+# manifest: ./manifest.json

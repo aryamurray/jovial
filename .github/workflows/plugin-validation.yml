@@ -1,0 +1,27 @@
+name: Plugin Validation
+
+on:
+  pull_request:
+    paths:
+      - "plugins/community/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  validate:
+    name: Validate Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Find changed plugins
+        id: changed
+        run: |
+          echo "plugins=$(git diff --name-only ${{ github.event.pull_request.base.sha }} | grep '^plugins/community/' | cut -d/ -f3 | sort -u | tr '\n' ' ')" >> $GITHUB_OUTPUT
+      - name: Validate plugins
+        run: |
+          for plugin in ${{ steps.changed.outputs.plugins }}; do
+            echo "Validating: $plugin"
+            bash registry/scripts/validate.sh "plugins/community/$plugin"
+          done

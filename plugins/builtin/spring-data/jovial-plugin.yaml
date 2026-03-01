@@ -1,0 +1,8 @@
+name: spring-data
+version: "0.1.0"
+description: "Transforms JPA entities and Spring Data repositories to GORM"
+author: "Jovial Contributors"
+java_packages:
+  - javax.persistence
+  - jakarta.persistence
+  - org.springframework.data

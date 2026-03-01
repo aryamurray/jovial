@@ -1,0 +1,10 @@
+[package]
+name = "jovial-parser"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+jovial-ast = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }

@@ -1,0 +1,56 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/jovial-ast",
+    "crates/jovial-manifest",
+    "crates/jovial-plugin",
+    "crates/jovial-parser",
+    "crates/jovial-emitter",
+    "crates/jovial-walker",
+    "crates/jovial-codegen",
+    "crates/jovial-cli",
+    "plugins/builtin/spring-web",
+    "plugins/builtin/spring-data",
+    "plugins/builtin/spring-tx",
+    "plugins/builtin/guava",
+    "plugins/builtin/jackson",
+    "plugins/builtin/lombok",
+    "plugins/builtin/slf4j",
+    "plugin-sdk/examples/minimal",
+    "plugin-sdk/examples/apache-httpclient",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "MIT"
+
+[workspace.dependencies]
+# Internal crates
+jovial-ast = { path = "crates/jovial-ast" }
+jovial-manifest = { path = "crates/jovial-manifest" }
+jovial-plugin = { path = "crates/jovial-plugin" }
+jovial-parser = { path = "crates/jovial-parser" }
+jovial-emitter = { path = "crates/jovial-emitter" }
+jovial-walker = { path = "crates/jovial-walker" }
+jovial-codegen = { path = "crates/jovial-codegen" }
+
+# Builtin plugins
+jovial-plugin-spring-web = { path = "plugins/builtin/spring-web" }
+jovial-plugin-spring-data = { path = "plugins/builtin/spring-data" }
+jovial-plugin-spring-tx = { path = "plugins/builtin/spring-tx" }
+jovial-plugin-guava = { path = "plugins/builtin/guava" }
+jovial-plugin-jackson = { path = "plugins/builtin/jackson" }
+jovial-plugin-lombok = { path = "plugins/builtin/lombok" }
+jovial-plugin-slf4j = { path = "plugins/builtin/slf4j" }
+
+# External dependencies
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+anyhow = "1"
+log = "0.4"
+env_logger = "0.11"
+insta = "1"
