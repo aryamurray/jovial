@@ -7,3 +7,6 @@ license.workspace = true
 [dependencies]
 jovial-ast = { workspace = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
