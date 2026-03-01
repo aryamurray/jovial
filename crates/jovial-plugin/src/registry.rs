@@ -1,6 +1,6 @@
 use crate::traits::Plugin;
 
-/// Priority-ordered registry of plugins.
+/// Config-ordered registry of plugins.
 pub struct PluginRegistry {
     plugins: Vec<Box<dyn Plugin>>,
 }
@@ -12,18 +12,12 @@ impl PluginRegistry {
         }
     }
 
-    /// Register a plugin, maintaining priority order (lower priority value = earlier in list).
+    /// Register a plugin, appending in config order.
     pub fn register(&mut self, plugin: Box<dyn Plugin>) {
-        let priority = plugin.priority();
-        let pos = self
-            .plugins
-            .iter()
-            .position(|p| p.priority() > priority)
-            .unwrap_or(self.plugins.len());
-        self.plugins.insert(pos, plugin);
+        self.plugins.push(plugin);
     }
 
-    /// Get all registered plugins in priority order.
+    /// Get all registered plugins in config order.
     pub fn plugins(&self) -> &[Box<dyn Plugin>] {
         &self.plugins
     }

@@ -75,8 +75,11 @@ impl<'a> Walker<'a> {
         };
 
         if let Some(plugin) = self.registry.find_match(&ctx) {
+            let walk_fn = |child: &jovial_ast::java::JavaNode| -> Result<Vec<GoNode>, jovial_plugin::error::PluginError> {
+                self.walk_node(child).map_err(|e| jovial_plugin::error::PluginError::WalkError(e.to_string()))
+            };
             let mut transform_ctx =
-                TransformContext::new(node, self.type_resolver, self.config);
+                TransformContext::new(node, self.type_resolver, self.config, &walk_fn);
             let result = plugin.transform(&mut transform_ctx)?;
             // TODO: collect side-effects (imports, dependencies, diagnostics)
             return Ok(result);

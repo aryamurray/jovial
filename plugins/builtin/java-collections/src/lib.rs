@@ -342,7 +342,8 @@ mod tests {
             span: dummy_span(),
         };
 
-        let mut ctx = TransformContext::new(&node, &resolver, &config);
+        let noop_walk = |_: &JavaNode| -> Result<Vec<GoNode>, PluginError> { Ok(vec![]) };
+        let mut ctx = TransformContext::new(&node, &resolver, &config, &noop_walk);
         let result = plugin.transform(&mut ctx).unwrap();
 
         assert_eq!(result.len(), 1);
@@ -387,7 +388,8 @@ mod tests {
             span: dummy_span(),
         };
 
-        let mut ctx = TransformContext::new(&node, &resolver, &config);
+        let noop_walk = |_: &JavaNode| -> Result<Vec<GoNode>, PluginError> { Ok(vec![]) };
+        let mut ctx = TransformContext::new(&node, &resolver, &config, &noop_walk);
         let result = plugin.transform(&mut ctx).unwrap();
 
         assert_eq!(result.len(), 1);
@@ -425,7 +427,8 @@ mod tests {
             span: dummy_span(),
         };
 
-        let mut ctx = TransformContext::new(&node, &resolver, &config);
+        let noop_walk = |_: &JavaNode| -> Result<Vec<GoNode>, PluginError> { Ok(vec![]) };
+        let mut ctx = TransformContext::new(&node, &resolver, &config, &noop_walk);
         let result = plugin.transform(&mut ctx).unwrap();
 
         assert_eq!(result.len(), 1);

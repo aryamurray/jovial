@@ -12,6 +12,9 @@ pub enum PluginError {
     #[error("configuration error: {0}")]
     ConfigError(String),
 
+    #[error("walk error: {0}")]
+    WalkError(String),
+
     #[error("{0}")]
     Other(String),
 }
