@@ -512,6 +512,7 @@ dependencies = [
 name = "jovial-walker"
 version = "0.1.0"
 dependencies = [
+ "insta",
  "jovial-ast",
  "jovial-plugin",
  "log",
