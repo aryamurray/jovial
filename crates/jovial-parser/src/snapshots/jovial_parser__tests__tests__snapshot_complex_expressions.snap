@@ -1,0 +1,372 @@
+---
+source: crates/jovial-parser/src/tests.rs
+assertion_line: 247
+expression: cu
+---
+package: ~
+imports: []
+types:
+  - ClassDecl:
+      name: Expr
+      modifiers: []
+      superclass: ~
+      interfaces: []
+      annotations: []
+      members:
+        - MethodDecl:
+            name: test
+            modifiers: []
+            return_type:
+              name: void
+              type_args: []
+              array_dimensions: 0
+              is_varargs: false
+            parameters: []
+            annotations: []
+            body:
+              BlockStmt:
+                statements:
+                  - VariableDecl:
+                      name: a
+                      var_type:
+                        name: int
+                        type_args: []
+                        array_dimensions: 0
+                        is_varargs: false
+                      initializer:
+                        BinaryExpr:
+                          left:
+                            LiteralExpr:
+                              value:
+                                Int: 1
+                              span:
+                                file: Test.java
+                                line_start: 4
+                                col_start: 17
+                                line_end: 4
+                                col_end: 18
+                          op: Add
+                          right:
+                            BinaryExpr:
+                              left:
+                                LiteralExpr:
+                                  value:
+                                    Int: 2
+                                  span:
+                                    file: Test.java
+                                    line_start: 4
+                                    col_start: 21
+                                    line_end: 4
+                                    col_end: 22
+                              op: Mul
+                              right:
+                                LiteralExpr:
+                                  value:
+                                    Int: 3
+                                  span:
+                                    file: Test.java
+                                    line_start: 4
+                                    col_start: 25
+                                    line_end: 4
+                                    col_end: 26
+                              span:
+                                file: Test.java
+                                line_start: 4
+                                col_start: 21
+                                line_end: 4
+                                col_end: 26
+                          span:
+                            file: Test.java
+                            line_start: 4
+                            col_start: 17
+                            line_end: 4
+                            col_end: 26
+                      is_final: false
+                      span:
+                        file: Test.java
+                        line_start: 4
+                        col_start: 9
+                        line_end: 4
+                        col_end: 27
+                  - VariableDecl:
+                      name: b
+                      var_type:
+                        name: boolean
+                        type_args: []
+                        array_dimensions: 0
+                        is_varargs: false
+                      initializer:
+                        BinaryExpr:
+                          left:
+                            BinaryExpr:
+                              left:
+                                NameExpr:
+                                  name: x
+                                  span:
+                                    file: Test.java
+                                    line_start: 5
+                                    col_start: 21
+                                    line_end: 5
+                                    col_end: 22
+                              op: Gt
+                              right:
+                                LiteralExpr:
+                                  value:
+                                    Int: 0
+                                  span:
+                                    file: Test.java
+                                    line_start: 5
+                                    col_start: 25
+                                    line_end: 5
+                                    col_end: 26
+                              span:
+                                file: Test.java
+                                line_start: 5
+                                col_start: 21
+                                line_end: 5
+                                col_end: 26
+                          op: And
+                          right:
+                            BinaryExpr:
+                              left:
+                                NameExpr:
+                                  name: y
+                                  span:
+                                    file: Test.java
+                                    line_start: 5
+                                    col_start: 30
+                                    line_end: 5
+                                    col_end: 31
+                              op: Lt
+                              right:
+                                LiteralExpr:
+                                  value:
+                                    Int: 10
+                                  span:
+                                    file: Test.java
+                                    line_start: 5
+                                    col_start: 34
+                                    line_end: 5
+                                    col_end: 36
+                              span:
+                                file: Test.java
+                                line_start: 5
+                                col_start: 30
+                                line_end: 5
+                                col_end: 36
+                          span:
+                            file: Test.java
+                            line_start: 5
+                            col_start: 21
+                            line_end: 5
+                            col_end: 36
+                      is_final: false
+                      span:
+                        file: Test.java
+                        line_start: 5
+                        col_start: 9
+                        line_end: 5
+                        col_end: 37
+                  - VariableDecl:
+                      name: s
+                      var_type:
+                        name: String
+                        type_args: []
+                        array_dimensions: 0
+                        is_varargs: false
+                      initializer:
+                        TernaryExpr:
+                          condition:
+                            NameExpr:
+                              name: flag
+                              span:
+                                file: Test.java
+                                line_start: 6
+                                col_start: 20
+                                line_end: 6
+                                col_end: 24
+                          then_expr:
+                            LiteralExpr:
+                              value:
+                                String: "yes"
+                              span:
+                                file: Test.java
+                                line_start: 6
+                                col_start: 27
+                                line_end: 6
+                                col_end: 32
+                          else_expr:
+                            LiteralExpr:
+                              value:
+                                String: "no"
+                              span:
+                                file: Test.java
+                                line_start: 6
+                                col_start: 35
+                                line_end: 6
+                                col_end: 39
+                          span:
+                            file: Test.java
+                            line_start: 6
+                            col_start: 20
+                            line_end: 6
+                            col_end: 39
+                      is_final: false
+                      span:
+                        file: Test.java
+                        line_start: 6
+                        col_start: 9
+                        line_end: 6
+                        col_end: 40
+                  - VariableDecl:
+                      name: o
+                      var_type:
+                        name: Object
+                        type_args: []
+                        array_dimensions: 0
+                        is_varargs: false
+                      initializer:
+                        CastExpr:
+                          target_type:
+                            name: String
+                            type_args: []
+                            array_dimensions: 0
+                            is_varargs: false
+                          expression:
+                            NameExpr:
+                              name: obj
+                              span:
+                                file: Test.java
+                                line_start: 7
+                                col_start: 29
+                                line_end: 7
+                                col_end: 32
+                          span:
+                            file: Test.java
+                            line_start: 7
+                            col_start: 20
+                            line_end: 7
+                            col_end: 32
+                      is_final: false
+                      span:
+                        file: Test.java
+                        line_start: 7
+                        col_start: 9
+                        line_end: 7
+                        col_end: 33
+                  - MethodCallExpr:
+                      object:
+                        MethodCallExpr:
+                          object:
+                            MethodCallExpr:
+                              object:
+                                NameExpr:
+                                  name: items
+                                  span:
+                                    file: Test.java
+                                    line_start: 8
+                                    col_start: 9
+                                    line_end: 8
+                                    col_end: 14
+                              name: stream
+                              arguments: []
+                              type_args: []
+                              span:
+                                file: Test.java
+                                line_start: 8
+                                col_start: 9
+                                line_end: 8
+                                col_end: 23
+                          name: filter
+                          arguments:
+                            - LambdaExpr:
+                                parameters:
+                                  - Parameter:
+                                      name: x
+                                      param_type:
+                                        name: var
+                                        type_args: []
+                                        array_dimensions: 0
+                                        is_varargs: false
+                                      annotations: []
+                                      span:
+                                        file: Test.java
+                                        line_start: 8
+                                        col_start: 31
+                                        line_end: 8
+                                        col_end: 32
+                                body:
+                                  BinaryExpr:
+                                    left:
+                                      NameExpr:
+                                        name: x
+                                        span:
+                                          file: Test.java
+                                          line_start: 8
+                                          col_start: 36
+                                          line_end: 8
+                                          col_end: 37
+                                    op: Gt
+                                    right:
+                                      LiteralExpr:
+                                        value:
+                                          Int: 0
+                                        span:
+                                          file: Test.java
+                                          line_start: 8
+                                          col_start: 40
+                                          line_end: 8
+                                          col_end: 41
+                                    span:
+                                      file: Test.java
+                                      line_start: 8
+                                      col_start: 36
+                                      line_end: 8
+                                      col_end: 41
+                                span:
+                                  file: Test.java
+                                  line_start: 8
+                                  col_start: 31
+                                  line_end: 8
+                                  col_end: 41
+                          type_args: []
+                          span:
+                            file: Test.java
+                            line_start: 8
+                            col_start: 9
+                            line_end: 8
+                            col_end: 42
+                      name: count
+                      arguments: []
+                      type_args: []
+                      span:
+                        file: Test.java
+                        line_start: 8
+                        col_start: 9
+                        line_end: 8
+                        col_end: 50
+                span:
+                  file: Test.java
+                  line_start: 3
+                  col_start: 17
+                  line_end: 9
+                  col_end: 6
+            throws: []
+            span:
+              file: Test.java
+              line_start: 3
+              col_start: 5
+              line_end: 9
+              col_end: 6
+      span:
+        file: Test.java
+        line_start: 2
+        col_start: 1
+        line_end: 10
+        col_end: 2
+span:
+  file: Test.java
+  line_start: 2
+  col_start: 1
+  line_end: 11
+  col_end: 1

@@ -1,0 +1,313 @@
+---
+source: crates/jovial-parser/src/tests.rs
+assertion_line: 231
+expression: cu
+---
+package: com.example.web
+imports:
+  - org.springframework.web.bind.annotation.*
+  - java.util.List
+types:
+  - ClassDecl:
+      name: UserController
+      modifiers:
+        - Public
+      superclass: ~
+      interfaces: []
+      annotations:
+        - AnnotationExpr:
+            name: RestController
+            arguments: []
+            span:
+              file: Test.java
+              line_start: 7
+              col_start: 1
+              line_end: 7
+              col_end: 16
+        - AnnotationExpr:
+            name: RequestMapping
+            arguments:
+              - - value
+                - LiteralExpr:
+                    value:
+                      String: /api/users
+                    span:
+                      file: Test.java
+                      line_start: 8
+                      col_start: 17
+                      line_end: 8
+                      col_end: 29
+            span:
+              file: Test.java
+              line_start: 8
+              col_start: 1
+              line_end: 8
+              col_end: 30
+      members:
+        - FieldDecl:
+            name: userService
+            modifiers:
+              - Private
+            field_type:
+              name: UserService
+              type_args: []
+              array_dimensions: 0
+              is_varargs: false
+            initializer: ~
+            annotations:
+              - AnnotationExpr:
+                  name: Autowired
+                  arguments: []
+                  span:
+                    file: Test.java
+                    line_start: 10
+                    col_start: 5
+                    line_end: 10
+                    col_end: 15
+            span:
+              file: Test.java
+              line_start: 10
+              col_start: 5
+              line_end: 11
+              col_end: 37
+        - MethodDecl:
+            name: getUser
+            modifiers:
+              - Public
+            return_type:
+              name: ResponseEntity
+              type_args:
+                - name: User
+                  type_args: []
+                  array_dimensions: 0
+                  is_varargs: false
+              array_dimensions: 0
+              is_varargs: false
+            parameters:
+              - Parameter:
+                  name: id
+                  param_type:
+                    name: Long
+                    type_args: []
+                    array_dimensions: 0
+                    is_varargs: false
+                  annotations:
+                    - AnnotationExpr:
+                        name: PathVariable
+                        arguments: []
+                        span:
+                          file: Test.java
+                          line_start: 14
+                          col_start: 41
+                          line_end: 14
+                          col_end: 54
+                  span:
+                    file: Test.java
+                    line_start: 14
+                    col_start: 41
+                    line_end: 14
+                    col_end: 62
+            annotations:
+              - AnnotationExpr:
+                  name: GetMapping
+                  arguments:
+                    - - value
+                      - LiteralExpr:
+                          value:
+                            String: "/{id}"
+                          span:
+                            file: Test.java
+                            line_start: 13
+                            col_start: 17
+                            line_end: 13
+                            col_end: 24
+                  span:
+                    file: Test.java
+                    line_start: 13
+                    col_start: 5
+                    line_end: 13
+                    col_end: 25
+            body:
+              BlockStmt:
+                statements:
+                  - ReturnStmt:
+                      value:
+                        MethodCallExpr:
+                          object:
+                            NameExpr:
+                              name: ResponseEntity
+                              span:
+                                file: Test.java
+                                line_start: 15
+                                col_start: 16
+                                line_end: 15
+                                col_end: 30
+                          name: ok
+                          arguments:
+                            - MethodCallExpr:
+                                object:
+                                  NameExpr:
+                                    name: userService
+                                    span:
+                                      file: Test.java
+                                      line_start: 15
+                                      col_start: 34
+                                      line_end: 15
+                                      col_end: 45
+                                name: findById
+                                arguments:
+                                  - NameExpr:
+                                      name: id
+                                      span:
+                                        file: Test.java
+                                        line_start: 15
+                                        col_start: 55
+                                        line_end: 15
+                                        col_end: 57
+                                type_args: []
+                                span:
+                                  file: Test.java
+                                  line_start: 15
+                                  col_start: 34
+                                  line_end: 15
+                                  col_end: 58
+                          type_args: []
+                          span:
+                            file: Test.java
+                            line_start: 15
+                            col_start: 16
+                            line_end: 15
+                            col_end: 59
+                      span:
+                        file: Test.java
+                        line_start: 15
+                        col_start: 9
+                        line_end: 15
+                        col_end: 60
+                span:
+                  file: Test.java
+                  line_start: 14
+                  col_start: 64
+                  line_end: 16
+                  col_end: 6
+            throws: []
+            span:
+              file: Test.java
+              line_start: 13
+              col_start: 5
+              line_end: 16
+              col_end: 6
+        - MethodDecl:
+            name: createUsers
+            modifiers:
+              - Public
+            return_type:
+              name: List
+              type_args:
+                - name: User
+                  type_args: []
+                  array_dimensions: 0
+                  is_varargs: false
+              array_dimensions: 0
+              is_varargs: false
+            parameters:
+              - Parameter:
+                  name: users
+                  param_type:
+                    name: List
+                    type_args:
+                      - name: User
+                        type_args: []
+                        array_dimensions: 0
+                        is_varargs: false
+                    array_dimensions: 0
+                    is_varargs: false
+                  annotations:
+                    - AnnotationExpr:
+                        name: RequestBody
+                        arguments: []
+                        span:
+                          file: Test.java
+                          line_start: 19
+                          col_start: 35
+                          line_end: 19
+                          col_end: 47
+                  span:
+                    file: Test.java
+                    line_start: 19
+                    col_start: 35
+                    line_end: 19
+                    col_end: 64
+            annotations:
+              - AnnotationExpr:
+                  name: PostMapping
+                  arguments: []
+                  span:
+                    file: Test.java
+                    line_start: 18
+                    col_start: 5
+                    line_end: 18
+                    col_end: 17
+            body:
+              BlockStmt:
+                statements:
+                  - ReturnStmt:
+                      value:
+                        MethodCallExpr:
+                          object:
+                            NameExpr:
+                              name: userService
+                              span:
+                                file: Test.java
+                                line_start: 20
+                                col_start: 16
+                                line_end: 20
+                                col_end: 27
+                          name: saveAll
+                          arguments:
+                            - NameExpr:
+                                name: users
+                                span:
+                                  file: Test.java
+                                  line_start: 20
+                                  col_start: 36
+                                  line_end: 20
+                                  col_end: 41
+                          type_args: []
+                          span:
+                            file: Test.java
+                            line_start: 20
+                            col_start: 16
+                            line_end: 20
+                            col_end: 42
+                      span:
+                        file: Test.java
+                        line_start: 20
+                        col_start: 9
+                        line_end: 20
+                        col_end: 43
+                span:
+                  file: Test.java
+                  line_start: 19
+                  col_start: 66
+                  line_end: 21
+                  col_end: 6
+            throws: []
+            span:
+              file: Test.java
+              line_start: 18
+              col_start: 5
+              line_end: 21
+              col_end: 6
+      span:
+        file: Test.java
+        line_start: 7
+        col_start: 1
+        line_end: 22
+        col_end: 2
+span:
+  file: Test.java
+  line_start: 2
+  col_start: 1
+  line_end: 23
+  col_end: 1

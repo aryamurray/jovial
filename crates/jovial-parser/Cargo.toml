@@ -6,5 +6,11 @@ license.workspace = true
 
 [dependencies]
 jovial-ast = { workspace = true }
-thiserror = { workspace = true }
+tree-sitter = { workspace = true }
+tree-sitter-java = { workspace = true }
+miette = { workspace = true }
 log = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true, features = ["yaml"] }
+serde_json = { workspace = true }

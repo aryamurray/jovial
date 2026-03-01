@@ -1,0 +1,74 @@
+---
+source: crates/jovial-parser/src/tests.rs
+assertion_line: 261
+expression: cu
+---
+package: ~
+imports: []
+types:
+  - EnumDecl:
+      name: Planet
+      modifiers:
+        - Public
+      constants:
+        - MERCURY
+        - VENUS
+        - EARTH
+      annotations: []
+      members:
+        - MethodDecl:
+            name: surfaceGravity
+            modifiers:
+              - Public
+            return_type:
+              name: double
+              type_args: []
+              array_dimensions: 0
+              is_varargs: false
+            parameters: []
+            annotations: []
+            body:
+              BlockStmt:
+                statements:
+                  - ReturnStmt:
+                      value:
+                        LiteralExpr:
+                          value:
+                            Float: 9.8
+                          span:
+                            file: Test.java
+                            line_start: 6
+                            col_start: 16
+                            line_end: 6
+                            col_end: 19
+                      span:
+                        file: Test.java
+                        line_start: 6
+                        col_start: 9
+                        line_end: 6
+                        col_end: 20
+                span:
+                  file: Test.java
+                  line_start: 5
+                  col_start: 36
+                  line_end: 7
+                  col_end: 6
+            throws: []
+            span:
+              file: Test.java
+              line_start: 5
+              col_start: 5
+              line_end: 7
+              col_end: 6
+      span:
+        file: Test.java
+        line_start: 2
+        col_start: 1
+        line_end: 8
+        col_end: 2
+span:
+  file: Test.java
+  line_start: 2
+  col_start: 1
+  line_end: 9
+  col_end: 1

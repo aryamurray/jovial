@@ -247,6 +247,12 @@ pub enum JavaNode {
         arguments: Vec<JavaNode>,
         span: Span,
     },
+    TernaryExpr {
+        condition: Box<JavaNode>,
+        then_expr: Box<JavaNode>,
+        else_expr: Box<JavaNode>,
+        span: Span,
+    },
     CastExpr {
         target_type: JavaType,
         expression: Box<JavaNode>,

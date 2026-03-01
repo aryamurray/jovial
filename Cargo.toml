@@ -54,3 +54,6 @@ anyhow = "1"
 log = "0.4"
 env_logger = "0.11"
 insta = "1"
+tree-sitter = "0.24"
+tree-sitter-java = "0.23"
+miette = { version = "7", features = ["fancy"] }
