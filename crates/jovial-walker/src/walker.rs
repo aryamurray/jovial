@@ -84,7 +84,7 @@ impl<'a> Walker<'a> {
 
         // 2. Fall back to default converter
         self.default_converter
-            .convert(node, &|child| self.walk_node(child), None)
+            .convert(node, &|child| self.walk_node(child), None, None)
     }
 }
 
@@ -589,4 +589,89 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_bare_field_name_gets_receiver_prefix() {
+        let (registry, resolver, config) = empty_walker();
+        let walker = Walker::new(&registry, &resolver, &config);
+
+        // class Person { String name; String getName() { return name; } }
+        // bare "name" inside method body should become "p.Name"
+        let unit = JavaCompilationUnit {
+            package: None,
+            imports: vec![],
+            types: vec![JavaNode::ClassDecl {
+                name: "Person".to_string(),
+                modifiers: vec![],
+                superclass: None,
+                interfaces: vec![],
+                annotations: vec![],
+                members: vec![
+                    JavaNode::FieldDecl {
+                        name: "name".to_string(),
+                        modifiers: vec![],
+                        field_type: JavaType {
+                            name: "String".to_string(),
+                            type_args: vec![],
+                            array_dimensions: 0,
+                            is_varargs: false,
+                        },
+                        initializer: None,
+                        annotations: vec![],
+                        span: dummy_span(),
+                    },
+                    JavaNode::MethodDecl {
+                        name: "getName".to_string(),
+                        modifiers: vec![],
+                        return_type: Some(JavaType {
+                            name: "String".to_string(),
+                            type_args: vec![],
+                            array_dimensions: 0,
+                            is_varargs: false,
+                        }),
+                        parameters: vec![],
+                        annotations: vec![],
+                        body: Some(Box::new(JavaNode::BlockStmt {
+                            statements: vec![JavaNode::ReturnStmt {
+                                value: Some(Box::new(JavaNode::NameExpr {
+                                    name: "name".to_string(),
+                                    span: dummy_span(),
+                                })),
+                                span: dummy_span(),
+                            }],
+                            span: dummy_span(),
+                        })),
+                        throws: vec![],
+                        span: dummy_span(),
+                    },
+                ],
+                span: dummy_span(),
+            }],
+            span: dummy_span(),
+        };
+
+        let result = walker.walk(&unit).unwrap();
+        let func = result.iter().find(|n| {
+            matches!(n, GoNode::FuncDecl { name, .. } if name == "GetName")
+        }).expect("should have GetName function");
+
+        if let GoNode::FuncDecl { body, .. } = func {
+            if let Some(GoNode::ReturnStmt { values, .. }) = body.first() {
+                // Bare "name" should become SelectorExpr: p.Name
+                if let Some(GoNode::SelectorExpr { object, field, .. }) = values.first() {
+                    assert_eq!(field, "Name");
+                    if let GoNode::Ident { name, .. } = object.as_ref() {
+                        assert_eq!(name, "p");
+                    } else {
+                        panic!("expected Ident receiver, got {:?}", object);
+                    }
+                } else {
+                    panic!("expected SelectorExpr, got {:?}", values.first());
+                }
+            } else {
+                panic!("expected ReturnStmt");
+            }
+        }
+    }
+
 }

@@ -1,8 +1,0 @@
-[package]
-name = "jovial-plugin-slf4j"
-edition.workspace = true
-version.workspace = true
-license.workspace = true
-
-[dependencies]
-jovial-plugin = { workspace = true }

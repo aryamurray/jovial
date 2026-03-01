@@ -2,6 +2,8 @@
 
 mod commands;
 mod config;
+mod discovery;
+mod extractor;
 mod loader;
 
 use clap::Parser;

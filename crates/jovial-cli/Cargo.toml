@@ -18,13 +18,7 @@ jovial-walker = { workspace = true }
 jovial-codegen = { workspace = true }
 
 # Builtin plugins
-jovial-plugin-spring-web = { workspace = true }
-jovial-plugin-spring-data = { workspace = true }
-jovial-plugin-spring-tx = { workspace = true }
-jovial-plugin-guava = { workspace = true }
-jovial-plugin-jackson = { workspace = true }
-jovial-plugin-lombok = { workspace = true }
-jovial-plugin-slf4j = { workspace = true }
+jovial-plugin-java-collections = { workspace = true }
 
 clap = { workspace = true }
 serde = { workspace = true }
@@ -32,3 +26,6 @@ serde_yaml = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
+serde_json = { workspace = true }
+walkdir = { workspace = true }
+which = { workspace = true }

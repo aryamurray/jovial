@@ -1,0 +1,11 @@
+source:
+  roots:
+    - src/main/java
+
+extractor:
+  manifest_path: manifest.json
+
+target:
+  module: github.com/acme/bookstore-go
+  go_version: "1.21"
+  output_dir: ./out

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use jovial_ast::go::GoNode;
 use jovial_ast::java::JavaNode;
 
@@ -15,17 +17,19 @@ impl DefaultConverter {
     }
 
     /// Walk a child node within a class context, threading `current_class`
-    /// through all descendants so `this` resolves to the correct receiver name.
+    /// and the class's field names through all descendants so `this` resolves
+    /// to the correct receiver and bare field names get prefixed.
     pub(crate) fn walk_in_class<'a>(
         &'a self,
         node: &JavaNode,
         walk_child: &'a dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
         class_name: &'a str,
+        class_fields: &'a HashSet<String>,
     ) -> Result<Vec<GoNode>, WalkError> {
         let class_walk = |child: &JavaNode| -> Result<Vec<GoNode>, WalkError> {
-            self.walk_in_class(child, walk_child, class_name)
+            self.walk_in_class(child, walk_child, class_name, class_fields)
         };
-        self.convert(node, &class_walk, Some(class_name))
+        self.convert(node, &class_walk, Some(class_name), Some(class_fields))
     }
 
     /// Convert a Java AST node to Go AST node(s) using basic mechanical translation.
@@ -34,6 +38,7 @@ impl DefaultConverter {
         node: &JavaNode,
         walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
         current_class: Option<&str>,
+        class_fields: Option<&HashSet<String>>,
     ) -> Result<Vec<GoNode>, WalkError> {
         match node {
             // ── Declarations ────────────────────────────────────────
@@ -213,7 +218,7 @@ impl DefaultConverter {
             } => convert_expr::convert_field_access_expr(object, field, span, walk_child),
 
             JavaNode::NameExpr { name, span } => {
-                convert_expr::convert_name_expr(name, span, current_class)
+                convert_expr::convert_name_expr(name, span, current_class, class_fields)
             }
 
             JavaNode::LiteralExpr { value, span } => {

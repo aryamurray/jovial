@@ -9,13 +9,7 @@ members = [
     "crates/jovial-walker",
     "crates/jovial-codegen",
     "crates/jovial-cli",
-    "plugins/builtin/spring-web",
-    "plugins/builtin/spring-data",
-    "plugins/builtin/spring-tx",
-    "plugins/builtin/guava",
-    "plugins/builtin/jackson",
-    "plugins/builtin/lombok",
-    "plugins/builtin/slf4j",
+    "plugins/builtin/java-collections",
     "plugin-sdk/examples/minimal",
     "plugin-sdk/examples/apache-httpclient",
 ]
@@ -36,13 +30,7 @@ jovial-walker = { path = "crates/jovial-walker" }
 jovial-codegen = { path = "crates/jovial-codegen" }
 
 # Builtin plugins
-jovial-plugin-spring-web = { path = "plugins/builtin/spring-web" }
-jovial-plugin-spring-data = { path = "plugins/builtin/spring-data" }
-jovial-plugin-spring-tx = { path = "plugins/builtin/spring-tx" }
-jovial-plugin-guava = { path = "plugins/builtin/guava" }
-jovial-plugin-jackson = { path = "plugins/builtin/jackson" }
-jovial-plugin-lombok = { path = "plugins/builtin/lombok" }
-jovial-plugin-slf4j = { path = "plugins/builtin/slf4j" }
+jovial-plugin-java-collections = { path = "plugins/builtin/java-collections" }
 
 # External dependencies
 serde = { version = "1", features = ["derive"] }
@@ -57,3 +45,5 @@ insta = "1"
 tree-sitter = "0.24"
 tree-sitter-java = "0.23"
 miette = { version = "7", features = ["fancy"] }
+walkdir = "2"
+which = "7"

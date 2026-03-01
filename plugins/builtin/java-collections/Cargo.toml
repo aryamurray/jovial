@@ -1,0 +1,11 @@
+[package]
+name = "jovial-plugin-java-collections"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+jovial-plugin = { workspace = true }
+
+[dev-dependencies]
+jovial-ast = { workspace = true }

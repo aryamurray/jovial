@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use jovial_ast::go::{GoBinaryOp, GoLiteralValue, GoNode, GoUnaryOp};
 use jovial_ast::java::{BinaryOp, JavaNode, JavaType, LiteralValue, UnaryOp};
 use jovial_ast::span::Span;
@@ -69,16 +71,34 @@ pub(crate) fn convert_name_expr(
     name: &str,
     span: &Span,
     current_class: Option<&str>,
+    class_fields: Option<&HashSet<String>>,
 ) -> Result<Vec<GoNode>, WalkError> {
-    let go_name = if name == "this" {
-        current_class
+    if name == "this" {
+        let go_name = current_class
             .map(|c| receiver_name(c))
-            .unwrap_or_else(|| "this".to_string())
-    } else {
-        name.to_string()
-    };
+            .unwrap_or_else(|| "this".to_string());
+        return Ok(vec![GoNode::Ident {
+            name: go_name,
+            span: span.clone(),
+        }]);
+    }
+
+    // If we're inside a class and the name matches a field, emit receiver.FieldName
+    if let (Some(cls), Some(fields)) = (current_class, class_fields) {
+        if fields.contains(name) {
+            return Ok(vec![GoNode::SelectorExpr {
+                object: Box::new(GoNode::Ident {
+                    name: receiver_name(cls),
+                    span: span.clone(),
+                }),
+                field: java_name_to_go_exported(name),
+                span: span.clone(),
+            }]);
+        }
+    }
+
     Ok(vec![GoNode::Ident {
-        name: go_name,
+        name: name.to_string(),
         span: span.clone(),
     }])
 }

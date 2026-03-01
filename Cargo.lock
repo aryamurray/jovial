@@ -187,6 +187,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "either"
+version = "1.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+
+[[package]]
 name = "encode_unicode"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -201,6 +207,12 @@ dependencies = [
  "log",
  "regex",
 ]
+
+[[package]]
+name = "env_home"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f84e12ccf0a7ddc17a6c41c93326024c42920d7ee630d04950e6926645c0fe"
 
 [[package]]
 name = "env_logger"
@@ -382,17 +394,14 @@ dependencies = [
  "jovial-manifest",
  "jovial-parser",
  "jovial-plugin",
- "jovial-plugin-guava",
- "jovial-plugin-jackson",
- "jovial-plugin-lombok",
- "jovial-plugin-slf4j",
- "jovial-plugin-spring-data",
- "jovial-plugin-spring-tx",
- "jovial-plugin-spring-web",
+ "jovial-plugin-java-collections",
  "jovial-walker",
  "log",
  "serde",
+ "serde_json",
  "serde_yaml",
+ "walkdir",
+ "which",
 ]
 
 [[package]]
@@ -454,56 +463,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "jovial-plugin-guava"
+name = "jovial-plugin-java-collections"
 version = "0.1.0"
 dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-jackson"
-version = "0.1.0"
-dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-lombok"
-version = "0.1.0"
-dependencies = [
+ "jovial-ast",
  "jovial-plugin",
 ]
 
 [[package]]
 name = "jovial-plugin-minimal-example"
-version = "0.1.0"
-dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-slf4j"
-version = "0.1.0"
-dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-spring-data"
-version = "0.1.0"
-dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-spring-tx"
-version = "0.1.0"
-dependencies = [
- "jovial-plugin",
-]
-
-[[package]]
-name = "jovial-plugin-spring-web"
 version = "0.1.0"
 dependencies = [
  "jovial-plugin",
@@ -718,6 +686,15 @@ name = "ryu"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
+
+[[package]]
+name = "same-file"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
+dependencies = [
+ "winapi-util",
+]
 
 [[package]]
 name = "semver"
@@ -962,6 +939,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
+name = "walkdir"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b"
+dependencies = [
+ "same-file",
+ "winapi-util",
+]
+
+[[package]]
 name = "wasip2"
 version = "1.0.2+wasi-0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1011,6 +998,27 @@ dependencies = [
  "hashbrown 0.15.5",
  "indexmap",
  "semver",
+]
+
+[[package]]
+name = "which"
+version = "7.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24d643ce3fd3e5b54854602a080f34fb10ab75e0b813ee32d00ca2b44fa74762"
+dependencies = [
+ "either",
+ "env_home",
+ "rustix",
+ "winsafe",
+]
+
+[[package]]
+name = "winapi-util"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
+dependencies = [
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1174,6 +1182,12 @@ name = "windows_x86_64_msvc"
 version = "0.53.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
+
+[[package]]
+name = "winsafe"
+version = "0.0.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
 name = "wit-bindgen"

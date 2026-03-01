@@ -1,0 +1,106 @@
+{
+    "beans": [
+        {
+            "name": "bookRepository",
+            "class_name": "com.acme.bookstore.BookRepository",
+            "scope": "Singleton",
+            "dependencies": [],
+            "proxy_info": null
+        },
+        {
+            "name": "bookService",
+            "class_name": "com.acme.bookstore.BookService",
+            "scope": "Singleton",
+            "dependencies": [
+                {
+                    "bean_name": "bookRepository",
+                    "type_name": "com.acme.bookstore.BookRepository",
+                    "required": true
+                }
+            ],
+            "proxy_info": null
+        },
+        {
+            "name": "bookController",
+            "class_name": "com.acme.bookstore.BookController",
+            "scope": "Singleton",
+            "dependencies": [
+                {
+                    "bean_name": "bookService",
+                    "type_name": "com.acme.bookstore.BookService",
+                    "required": true
+                }
+            ],
+            "proxy_info": null
+        }
+    ],
+    "endpoints": [
+        {
+            "path": "/api/books",
+            "method": "Get",
+            "handler_class": "com.acme.bookstore.BookController",
+            "handler_method": "getAllBooks",
+            "parameters": [],
+            "produces": ["application/json"],
+            "consumes": []
+        },
+        {
+            "path": "/api/books/available",
+            "method": "Get",
+            "handler_class": "com.acme.bookstore.BookController",
+            "handler_method": "getAvailableBooks",
+            "parameters": [],
+            "produces": ["application/json"],
+            "consumes": []
+        },
+        {
+            "path": "/api/books",
+            "method": "Post",
+            "handler_class": "com.acme.bookstore.BookController",
+            "handler_method": "createBook",
+            "parameters": [
+                { "name": "title", "param_type": "String", "source": "Body", "required": true, "default_value": null },
+                { "name": "author", "param_type": "String", "source": "Body", "required": true, "default_value": null },
+                { "name": "price", "param_type": "double", "source": "Body", "required": true, "default_value": null }
+            ],
+            "produces": ["application/json"],
+            "consumes": ["application/json"]
+        },
+        {
+            "path": "/api/books/checkout",
+            "method": "Post",
+            "handler_class": "com.acme.bookstore.BookController",
+            "handler_method": "checkoutBook",
+            "parameters": [
+                { "name": "title", "param_type": "String", "source": "Body", "required": true, "default_value": null }
+            ],
+            "produces": ["application/json"],
+            "consumes": ["application/json"]
+        },
+        {
+            "path": "/api/books/stats",
+            "method": "Get",
+            "handler_class": "com.acme.bookstore.BookController",
+            "handler_method": "getStats",
+            "parameters": [],
+            "produces": ["application/json"],
+            "consumes": []
+        }
+    ],
+    "entities": [
+        {
+            "class_name": "com.acme.bookstore.Book",
+            "table_name": "books",
+            "fields": [
+                { "name": "id", "column_name": "id", "field_type": "Long", "nullable": false, "is_id": true, "is_generated": true },
+                { "name": "title", "column_name": "title", "field_type": "String", "nullable": false, "is_id": false, "is_generated": false },
+                { "name": "author", "column_name": "author", "field_type": "String", "nullable": false, "is_id": false, "is_generated": false },
+                { "name": "price", "column_name": "price", "field_type": "double", "nullable": false, "is_id": false, "is_generated": false },
+                { "name": "available", "column_name": "available", "field_type": "boolean", "nullable": false, "is_id": false, "is_generated": false }
+            ],
+            "relationships": []
+        }
+    ],
+    "advice_chains": [],
+    "unresolved": []
+}

@@ -261,45 +261,4 @@ public enum Planet {
         insta::assert_yaml_snapshot!(cu);
     }
 
-    #[test]
-    fn plugin_testdata_spring_web() {
-        let src = include_str!("../../../plugins/builtin/spring-web/testdata/input.java");
-        parse_java(src, "input.java").expect("spring-web testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_lombok() {
-        let src = include_str!("../../../plugins/builtin/lombok/testdata/input.java");
-        parse_java(src, "input.java").expect("lombok testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_jackson() {
-        let src = include_str!("../../../plugins/builtin/jackson/testdata/input.java");
-        parse_java(src, "input.java").expect("jackson testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_guava() {
-        let src = include_str!("../../../plugins/builtin/guava/testdata/input.java");
-        parse_java(src, "input.java").expect("guava testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_slf4j() {
-        let src = include_str!("../../../plugins/builtin/slf4j/testdata/input.java");
-        parse_java(src, "input.java").expect("slf4j testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_spring_data() {
-        let src = include_str!("../../../plugins/builtin/spring-data/testdata/input.java");
-        parse_java(src, "input.java").expect("spring-data testdata should parse");
-    }
-
-    #[test]
-    fn plugin_testdata_spring_tx() {
-        let src = include_str!("../../../plugins/builtin/spring-tx/testdata/input.java");
-        parse_java(src, "input.java").expect("spring-tx testdata should parse");
-    }
 }

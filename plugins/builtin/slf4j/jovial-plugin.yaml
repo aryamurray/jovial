@@ -1,6 +1,0 @@
-name: slf4j
-version: "0.1.0"
-description: "Transforms SLF4J logging to Go log/slog"
-author: "Jovial Contributors"
-java_packages:
-  - org.slf4j

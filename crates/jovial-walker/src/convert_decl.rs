@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use jovial_ast::go::{GoNode, GoReceiver, GoType, GoUnaryOp};
 use jovial_ast::java::{JavaNode, JavaType, Modifier};
 use jovial_ast::span::Span;
@@ -16,6 +18,14 @@ pub(crate) fn convert_class_decl(
     let mut fields = Vec::new();
     let mut methods = Vec::new();
 
+    // Collect field names so NameExpr can resolve bare field references
+    let mut field_names: HashSet<String> = HashSet::new();
+    for member in members {
+        if let JavaNode::FieldDecl { name: field_name, .. } = member {
+            field_names.insert(field_name.clone());
+        }
+    }
+
     for member in members {
         match member {
             JavaNode::FieldDecl {
@@ -32,7 +42,7 @@ pub(crate) fn convert_class_decl(
                 });
             }
             _ => {
-                let converted = converter.walk_in_class(member, walk_child, name)?;
+                let converted = converter.walk_in_class(member, walk_child, name, &field_names)?;
                 methods.extend(converted);
             }
         }

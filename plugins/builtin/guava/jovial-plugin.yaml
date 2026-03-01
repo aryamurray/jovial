@@ -1,6 +1,0 @@
-name: guava
-version: "0.1.0"
-description: "Transforms Google Guava APIs to Go standard library equivalents"
-author: "Jovial Contributors"
-java_packages:
-  - com.google.common

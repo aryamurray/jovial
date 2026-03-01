@@ -46,8 +46,23 @@ impl TypeResolver for DefaultTypeResolver {
         self.imports.get(simple_name).cloned()
     }
 
-    fn is_assignable_to(&self, _from: &str, _to: &str) -> bool {
-        todo!()
+    fn is_assignable_to(&self, from: &str, to: &str) -> bool {
+        if from == to {
+            return true;
+        }
+        // Walk superclass chain
+        if let Some(super_class) = self.superclasses.get(from) {
+            if self.is_assignable_to(super_class, to) {
+                return true;
+            }
+        }
+        // Check interfaces
+        if let Some(ifaces) = self.interfaces.get(from) {
+            if ifaces.iter().any(|i| i == to) {
+                return true;
+            }
+        }
+        false
     }
 
     fn superclass_of(&self, fqcn: &str) -> Option<String> {
