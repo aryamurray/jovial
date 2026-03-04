@@ -166,7 +166,24 @@ pub(crate) fn convert_constructor_decl(
         value_type: None,
     };
 
+    // Build a map from Go exported field name → Java parameter name.
+    // In Java constructors, `this.title = title` means the param and field share a name.
+    // After walking, both sides resolve to `t.Title = t.Title` because the walker
+    // sees `title` as a field reference. We post-process to fix the RHS back to the param.
+    let mut field_to_param: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    for p in parameters {
+        if let JavaNode::Parameter { name, .. } = p {
+            let go_field = java_name_to_go_exported(name);
+            field_to_param.insert(go_field, name.clone());
+        }
+    }
+
+    let receiver = receiver_name(class_name);
+
     let mut go_body = flatten_block(walk_child(body)?);
+
+    // Post-process: fix self-assignments like `t.Title = t.Title` → `t.Title = title`
+    fix_constructor_self_assignments(&mut go_body, &receiver, &field_to_param);
 
     let has_return = go_body.iter().any(|n| matches!(n, GoNode::ReturnStmt { .. }));
     if !has_return {
@@ -192,6 +209,51 @@ pub(crate) fn convert_constructor_decl(
         body: go_body,
         span: span.clone(),
     }])
+}
+
+/// Fix constructor self-assignments: `receiver.Field = receiver.Field` → `receiver.Field = param`
+///
+/// When Java has `this.title = title`, the walker converts both sides to `t.Title`
+/// because bare `title` matches a class field. This function detects that pattern and
+/// replaces the RHS with the original parameter name.
+fn fix_constructor_self_assignments(
+    body: &mut Vec<GoNode>,
+    receiver: &str,
+    field_to_param: &std::collections::HashMap<String, String>,
+) {
+    for node in body.iter_mut() {
+        // First, extract info without holding borrows
+        let replacement = match node {
+            GoNode::AssignStmt { lhs, rhs, .. } => {
+                match (lhs.first(), rhs.first()) {
+                    (
+                        Some(GoNode::SelectorExpr { object: lhs_obj, field: lhs_field, .. }),
+                        Some(GoNode::SelectorExpr { object: rhs_obj, field: rhs_field, .. }),
+                    ) => {
+                        let lhs_is_receiver = matches!(lhs_obj.as_ref(), GoNode::Ident { name, .. } if name == receiver);
+                        let rhs_is_receiver = matches!(rhs_obj.as_ref(), GoNode::Ident { name, .. } if name == receiver);
+                        if lhs_is_receiver && rhs_is_receiver && lhs_field == rhs_field {
+                            field_to_param.get(lhs_field.as_str()).cloned()
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                }
+            }
+            _ => None,
+        };
+
+        // Now apply the replacement
+        if let Some(param_name) = replacement {
+            if let GoNode::AssignStmt { rhs, span, .. } = node {
+                *rhs = vec![GoNode::Ident {
+                    name: param_name,
+                    span: span.clone(),
+                }];
+            }
+        }
+    }
 }
 
 pub(crate) fn convert_field_decl(

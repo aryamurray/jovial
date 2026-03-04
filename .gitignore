@@ -19,6 +19,10 @@ Thumbs.db
 
 # Build artifacts
 /generated/
+**/out/
+
+# Claude Code
+.claude/
 
 # Plugin runtime
 plugins/community/*/

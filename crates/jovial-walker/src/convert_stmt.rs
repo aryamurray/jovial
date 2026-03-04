@@ -146,23 +146,40 @@ pub(crate) fn convert_try_catch_stmt(
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
 ) -> Result<Vec<GoNode>, WalkError> {
     let mut result = Vec::new();
-    result.push(GoNode::RawCode {
-        code: "// TODO: Java try-catch converted; needs error handling review".to_string(),
-        span: span.clone(),
-    });
 
-    result.extend(flatten_block(walk_child(try_block)?));
-
-    for catch in catches {
-        result.extend(walk_child(catch)?);
-    }
-
+    // Emit finally block as defer first (Go defers run LIFO, so declaring first is correct)
     if let Some(finally) = finally_block {
-        result.push(GoNode::RawCode {
-            code: "// finally:".to_string(),
+        let finally_body = flatten_block(walk_child(finally)?);
+        result.push(GoNode::DeferStmt {
+            call: Box::new(GoNode::CallExpr {
+                function: Box::new(GoNode::FuncDecl {
+                    name: String::new(),
+                    receiver: None,
+                    params: vec![],
+                    returns: vec![],
+                    body: finally_body,
+                    span: span.clone(),
+                }),
+                args: vec![],
+                span: span.clone(),
+            }),
             span: span.clone(),
         });
-        result.extend(flatten_block(walk_child(finally)?));
+    }
+
+    // Try body: emit inline with error variable capture
+    // Wrap in a block comment for context
+    result.push(GoNode::RawCode {
+        code: "// try".to_string(),
+        span: span.clone(),
+    });
+    result.extend(flatten_block(walk_child(try_block)?));
+
+    // Catch clauses: each becomes `if err != nil { ... }`
+    if !catches.is_empty() {
+        for catch in catches {
+            result.extend(walk_child(catch)?);
+        }
     }
 
     Ok(result)
@@ -176,17 +193,33 @@ pub(crate) fn convert_catch_clause(
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
 ) -> Result<Vec<GoNode>, WalkError> {
     let type_names: Vec<String> = exception_types.iter().map(|t| t.name.clone()).collect();
-    let mut result = Vec::new();
-    result.push(GoNode::RawCode {
-        code: format!("// catch ({}: {}) {{", parameter, type_names.join(" | ")),
+    let catch_body = flatten_block(walk_child(body)?);
+
+    // Emit as: if err != nil { // catch ExceptionType \n <body> }
+    let mut guarded_body = vec![GoNode::RawCode {
+        code: format!("// catch: {} ({})", type_names.join(" | "), parameter),
         span: span.clone(),
-    });
-    result.extend(flatten_block(walk_child(body)?));
-    result.push(GoNode::RawCode {
-        code: "// }".to_string(),
+    }];
+    guarded_body.extend(catch_body);
+
+    Ok(vec![GoNode::IfStmt {
+        init: None,
+        condition: Box::new(GoNode::BinaryExpr {
+            left: Box::new(GoNode::Ident {
+                name: parameter.to_string(),
+                span: span.clone(),
+            }),
+            op: jovial_ast::go::GoBinaryOp::Ne,
+            right: Box::new(GoNode::Literal {
+                value: jovial_ast::go::GoLiteralValue::Nil,
+                span: span.clone(),
+            }),
+            span: span.clone(),
+        }),
+        body: guarded_body,
+        else_body: None,
         span: span.clone(),
-    });
-    Ok(result)
+    }])
 }
 
 pub(crate) fn convert_throw_stmt(
@@ -195,16 +228,46 @@ pub(crate) fn convert_throw_stmt(
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
 ) -> Result<Vec<GoNode>, WalkError> {
     let expr_nodes = walk_child(expression)?;
-    let expr_str = if let Some(GoNode::Ident { name, .. }) = expr_nodes.first() {
-        name.clone()
-    } else {
-        "err".to_string()
-    };
-    Ok(vec![GoNode::RawCode {
-        code: format!(
-            "// TODO: throw converted; consider: return fmt.Errorf(\"%w\", {})",
-            expr_str
-        ),
+
+    // If expression is a NewExpr (throw new Exception("msg")), emit: return fmt.Errorf("msg")
+    // Otherwise emit: return err
+    if expr_nodes.len() == 1 {
+        if let GoNode::CallExpr { args, .. } = &expr_nodes[0] {
+            // throw new SomeException(args...) → return fmt.Errorf(args...)
+            return Ok(vec![GoNode::ReturnStmt {
+                values: vec![GoNode::CallExpr {
+                    function: Box::new(GoNode::SelectorExpr {
+                        object: Box::new(GoNode::Ident {
+                            name: "fmt".to_string(),
+                            span: span.clone(),
+                        }),
+                        field: "Errorf".to_string(),
+                        span: span.clone(),
+                    }),
+                    args: if args.is_empty() {
+                        vec![GoNode::Literal {
+                            value: jovial_ast::go::GoLiteralValue::String("%w".to_string()),
+                            span: span.clone(),
+                        }]
+                    } else {
+                        // Prepend format string
+                        let mut new_args = vec![GoNode::Literal {
+                            value: jovial_ast::go::GoLiteralValue::String("%v".to_string()),
+                            span: span.clone(),
+                        }];
+                        new_args.extend(args.clone());
+                        new_args
+                    },
+                    span: span.clone(),
+                }],
+                span: span.clone(),
+            }]);
+        }
+    }
+
+    // Fallback: return the expression as-is (likely an error variable)
+    Ok(vec![GoNode::ReturnStmt {
+        values: expr_nodes,
         span: span.clone(),
     }])
 }

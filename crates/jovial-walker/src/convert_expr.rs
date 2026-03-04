@@ -321,11 +321,34 @@ pub(crate) fn convert_ternary_expr(
             span: span.clone(),
         });
 
-    Ok(vec![GoNode::IfStmt {
-        init: None,
-        condition: Box::new(cond),
-        body: walk_child(then_expr)?,
-        else_body: Some(walk_child(else_expr)?),
+    let then_vals = walk_child(then_expr)?;
+    let else_vals = walk_child(else_expr)?;
+
+    // Emit as an immediately-invoked function literal (IIFE):
+    //   func() T { if cond { return thenVal } else { return elseVal } }()
+    // This is a valid Go expression that works in any context (assignment, concat, arg).
+    Ok(vec![GoNode::CallExpr {
+        function: Box::new(GoNode::FuncDecl {
+            name: String::new(), // anonymous
+            receiver: None,
+            params: vec![],
+            returns: vec![], // Go infers return type
+            body: vec![GoNode::IfStmt {
+                init: None,
+                condition: Box::new(cond),
+                body: vec![GoNode::ReturnStmt {
+                    values: then_vals,
+                    span: span.clone(),
+                }],
+                else_body: Some(vec![GoNode::ReturnStmt {
+                    values: else_vals,
+                    span: span.clone(),
+                }]),
+                span: span.clone(),
+            }],
+            span: span.clone(),
+        }),
+        args: vec![],
         span: span.clone(),
     }])
 }

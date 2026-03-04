@@ -1,0 +1,16 @@
+source:
+  roots:
+    - src/main/java
+
+target:
+  module: github.com/test/complex
+  output_dir: ./out
+
+extractor:
+  skip: true
+
+plugins: []
+
+options:
+  error_handling: continue
+  verbose: true
