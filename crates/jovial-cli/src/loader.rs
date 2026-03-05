@@ -13,11 +13,15 @@ use crate::config::PluginRef;
 ///
 /// Iterates `plugin_refs` in order, looking up each in a builtin HashMap.
 /// Only enabled plugins are registered. Unknown names emit a warning.
-/// If `plugin_refs` is empty, no plugins are registered and the default converter handles everything.
+/// If `plugin_refs` is empty, all builtin plugins are auto-registered in default order.
 pub fn load_plugins(plugin_refs: &[PluginRef]) -> PluginRegistry {
     let mut registry = PluginRegistry::new();
 
     if plugin_refs.is_empty() {
+        // Auto-register all builtins in default order
+        registry.register(Box::new(JavaCollectionsPlugin));
+        registry.register(Box::new(JavaStringsPlugin));
+        registry.register(Box::new(JavaIoPlugin));
         return registry;
     }
 

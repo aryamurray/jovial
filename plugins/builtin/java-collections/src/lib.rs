@@ -72,8 +72,22 @@ impl Plugin for JavaCollectionsPlugin {
             JavaNode::MethodCallExpr {
                 object: Some(_),
                 name,
+                arguments,
                 ..
-            } => COLLECTION_METHODS.contains(&name.as_str()),
+            } => {
+                let method = name.as_str();
+                if !COLLECTION_METHODS.contains(&method) {
+                    return false;
+                }
+                // Validate arg count to avoid matching non-collection methods
+                // (e.g., Future.get() with 0 args vs List.get(index) with 1 arg)
+                match method {
+                    "get" | "add" | "contains" | "containsKey" => arguments.len() >= 1,
+                    "put" | "set" => arguments.len() >= 2,
+                    "size" | "isEmpty" | "keySet" => true,
+                    _ => true,
+                }
+            }
             _ => false,
         }
     }

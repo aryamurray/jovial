@@ -267,4 +267,9 @@ pub enum JavaNode {
         java_type: JavaType,
         span: Span,
     },
+    SynchronizedStmt {
+        lock: Box<JavaNode>,
+        body: Box<JavaNode>,
+        span: Span,
+    },
 }

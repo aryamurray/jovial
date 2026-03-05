@@ -104,6 +104,7 @@ pub enum GoNode {
     },
     StructDecl {
         name: String,
+        embedded: Vec<GoType>,
         fields: Vec<GoNode>,
         span: Span,
     },
@@ -218,6 +219,23 @@ pub enum GoNode {
     },
     RawCode {
         code: String,
+        span: Span,
+    },
+    /// Type assertion expression: `expr.(Type)`
+    TypeAssertExpr {
+        expr: Box<GoNode>,
+        assert_type: GoType,
+        span: Span,
+    },
+    /// Grouped const block: `const ( ... )`
+    ConstBlock {
+        decls: Vec<GoNode>,
+        span: Span,
+    },
+    /// Increment/decrement statement: `expr++` or `expr--`
+    IncDecStmt {
+        operand: Box<GoNode>,
+        is_increment: bool,
         span: Span,
     },
 }

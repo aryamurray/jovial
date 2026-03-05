@@ -13,7 +13,127 @@ pub(crate) fn convert_method_call_expr(
     arguments: &[JavaNode],
     span: &Span,
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
+    current_class: Option<&str>,
+    superclass: Option<&str>,
 ) -> Result<Vec<GoNode>, WalkError> {
+    // super(...) constructor call → parent struct init via embedding
+    if method_name == "super" && object.is_none() {
+        if let Some(parent) = superclass {
+            let walked_args: Vec<GoNode> = arguments
+                .iter()
+                .map(|a| walk_child(a).map(|nodes| nodes.into_iter().next()))
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
+                .flatten()
+                .collect();
+
+            let receiver = current_class
+                .map(|cls| receiver_name(cls))
+                .unwrap_or_else(|| "t".to_string());
+
+            // t.ParentType = *NewParentType(args...)
+            return Ok(vec![GoNode::AssignStmt {
+                lhs: vec![GoNode::SelectorExpr {
+                    object: Box::new(GoNode::Ident {
+                        name: receiver,
+                        span: span.clone(),
+                    }),
+                    field: parent.to_string(),
+                    span: span.clone(),
+                }],
+                rhs: vec![GoNode::UnaryExpr {
+                    op: GoUnaryOp::Deref,
+                    operand: Box::new(GoNode::CallExpr {
+                        function: Box::new(GoNode::Ident {
+                            name: format!("New{}", parent),
+                            span: span.clone(),
+                        }),
+                        args: walked_args,
+                        span: span.clone(),
+                    }),
+                    span: span.clone(),
+                }],
+                define: false,
+                span: span.clone(),
+            }]);
+        }
+        // No superclass known — fall back to comment
+        let arg_strs: Vec<String> = arguments
+            .iter()
+            .filter_map(|a| {
+                walk_child(a).ok().and_then(|nodes| {
+                    nodes.into_iter().next().and_then(|n| {
+                        if let GoNode::Ident { name, .. } = &n {
+                            Some(name.clone())
+                        } else if let GoNode::Literal { value, .. } = &n {
+                            Some(format!("{:?}", value))
+                        } else {
+                            Some("...".to_string())
+                        }
+                    })
+                })
+            })
+            .collect();
+        return Ok(vec![GoNode::RawCode {
+            code: format!("// super({})", arg_strs.join(", ")),
+            span: span.clone(),
+        }]);
+    }
+
+    // this(...) constructor delegation → comment placeholder
+    if method_name == "this" && object.is_none() {
+        let arg_strs: Vec<String> = arguments
+            .iter()
+            .filter_map(|a| {
+                walk_child(a).ok().and_then(|nodes| {
+                    nodes.into_iter().next().and_then(|n| {
+                        if let GoNode::Ident { name, .. } = &n {
+                            Some(name.clone())
+                        } else if let GoNode::Literal { value, .. } = &n {
+                            Some(format!("{:?}", value))
+                        } else {
+                            Some("...".to_string())
+                        }
+                    })
+                })
+            })
+            .collect();
+        return Ok(vec![GoNode::RawCode {
+            code: format!("// this({})", arg_strs.join(", ")),
+            span: span.clone(),
+        }]);
+    }
+
+    // super.method(...) → comment placeholder
+    if let Some(obj) = object {
+        if let JavaNode::NameExpr { name, .. } = obj {
+            if name == "super" {
+                let arg_strs: Vec<String> = arguments
+                    .iter()
+                    .filter_map(|a| {
+                        walk_child(a).ok().and_then(|nodes| {
+                            nodes.into_iter().next().and_then(|n| {
+                                if let GoNode::Ident { name, .. } = &n {
+                                    Some(name.clone())
+                                } else {
+                                    Some("...".to_string())
+                                }
+                            })
+                        })
+                    })
+                    .collect();
+                return Ok(vec![GoNode::RawCode {
+                    code: format!(
+                        "// super.{}({})",
+                        method_name,
+                        arg_strs.join(", ")
+                    ),
+                    span: span.clone(),
+                }]);
+            }
+        }
+    }
+
     let mut args = Vec::new();
     for arg in arguments {
         args.extend(walk_child(arg)?);
@@ -144,32 +264,46 @@ pub(crate) fn convert_binary_expr(
             }])
         }
         None => {
-            // instanceof → RawCode
-            let left_str = walk_child(left)?
-                .first()
+            // instanceof → TypeAssertExpr (Go type assertion)
+            let left_node = walk_child(left)?
+                .into_iter()
+                .next()
+                .unwrap_or(GoNode::Ident {
+                    name: "expr".to_string(),
+                    span: span.clone(),
+                });
+            let right_type = walk_child(right)?
+                .into_iter()
+                .next()
                 .and_then(|n| {
-                    if let GoNode::Ident { name, .. } = n {
-                        Some(name.clone())
+                    if let GoNode::TypeRef { go_type, .. } = n {
+                        Some(go_type)
+                    } else if let GoNode::Ident { name, .. } = &n {
+                        Some(jovial_ast::go::GoType {
+                            name: name.clone(),
+                            package: None,
+                            is_pointer: false,
+                            is_slice: false,
+                            is_map: false,
+                            key_type: None,
+                            value_type: None,
+                        })
                     } else {
                         None
                     }
                 })
-                .unwrap_or_else(|| "expr".to_string());
-            let right_str = walk_child(right)?
-                .first()
-                .and_then(|n| {
-                    if let GoNode::Ident { name, .. } = n {
-                        Some(name.clone())
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or_else(|| "Type".to_string());
-            Ok(vec![GoNode::RawCode {
-                code: format!(
-                    "// TODO: instanceof; consider type assertion: _, ok := {}.({});",
-                    left_str, right_str
-                ),
+                .unwrap_or_else(|| jovial_ast::go::GoType {
+                    name: "interface{}".to_string(),
+                    package: None,
+                    is_pointer: false,
+                    is_slice: false,
+                    is_map: false,
+                    key_type: None,
+                    value_type: None,
+                });
+            Ok(vec![GoNode::TypeAssertExpr {
+                expr: Box::new(left_node),
+                assert_type: right_type,
                 span: span.clone(),
             }])
         }
@@ -198,7 +332,7 @@ pub(crate) fn convert_unary_expr(
             }])
         }
         None => {
-            // Pre/Post increment/decrement → x = x + 1 / x = x - 1
+            // Pre/Post increment/decrement → Go's i++ / i-- (statement only)
             let operand_node = walk_child(operand)?
                 .into_iter()
                 .next()
@@ -206,23 +340,11 @@ pub(crate) fn convert_unary_expr(
                     name: "_".to_string(),
                     span: span.clone(),
                 });
-            let bin_op = if matches!(op, UnaryOp::PreIncrement | UnaryOp::PostIncrement) {
-                GoBinaryOp::Add
-            } else {
-                GoBinaryOp::Sub
-            };
-            Ok(vec![GoNode::AssignStmt {
-                lhs: vec![operand_node.clone()],
-                rhs: vec![GoNode::BinaryExpr {
-                    left: Box::new(operand_node),
-                    op: bin_op,
-                    right: Box::new(GoNode::Literal {
-                        value: GoLiteralValue::Int(1),
-                        span: span.clone(),
-                    }),
-                    span: span.clone(),
-                }],
-                define: false,
+            let is_increment =
+                matches!(op, UnaryOp::PreIncrement | UnaryOp::PostIncrement);
+            Ok(vec![GoNode::IncDecStmt {
+                operand: Box::new(operand_node),
+                is_increment,
                 span: span.clone(),
             }])
         }
@@ -281,15 +403,22 @@ pub(crate) fn convert_new_expr(
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
 ) -> Result<Vec<GoNode>, WalkError> {
     if arguments.is_empty() {
-        Ok(vec![GoNode::UnaryExpr {
-            op: GoUnaryOp::Addr,
-            operand: Box::new(GoNode::CompositeLit {
-                lit_type: convert_java_type(class_type),
-                elements: vec![],
-                span: span.clone(),
-            }),
+        let go_type = convert_java_type(class_type);
+        // Maps and slices are already reference types in Go — no & needed
+        let lit = GoNode::CompositeLit {
+            lit_type: go_type.clone(),
+            elements: vec![],
             span: span.clone(),
-        }])
+        };
+        if go_type.is_map || go_type.is_slice {
+            Ok(vec![lit])
+        } else {
+            Ok(vec![GoNode::UnaryExpr {
+                op: GoUnaryOp::Addr,
+                operand: Box::new(lit),
+                span: span.clone(),
+            }])
+        }
     } else {
         let mut args = Vec::new();
         for arg in arguments {

@@ -320,6 +320,42 @@ pub(crate) fn lower_stmt(lowerer: &Lowerer, node: Node) -> JavaNode {
             }
         }
 
+        // ── Synchronized ──────────────────────────────────────────────
+        "synchronized_statement" => {
+            let mut cursor = node.walk();
+            let children: Vec<_> = node.named_children(&mut cursor).collect();
+
+            // Extract lock expression from parenthesized_expression
+            let lock_node = children
+                .iter()
+                .find(|c| c.kind() == "parenthesized_expression")
+                .copied();
+            let lock = if let Some(paren) = lock_node {
+                let mut inner_cursor = paren.walk();
+                let inner: Vec<_> = paren.named_children(&mut inner_cursor).collect();
+                if let Some(expr) = inner.first() {
+                    lower_expr(lowerer, *expr)
+                } else {
+                    lower_expr(lowerer, paren)
+                }
+            } else {
+                lower_expr(lowerer, node)
+            };
+
+            // Extract body block
+            let body = children
+                .iter()
+                .find(|c| c.kind() == "block")
+                .map(|n| lower_stmt(lowerer, *n))
+                .unwrap_or_else(|| lower_stmt(lowerer, node));
+
+            JavaNode::SynchronizedStmt {
+                lock: Box::new(lock),
+                body: Box::new(body),
+                span: lowerer.span(node),
+            }
+        }
+
         // ── Fallback: try as expression ─────────────────────────────
         _ => lower_expr(lowerer, node),
     }

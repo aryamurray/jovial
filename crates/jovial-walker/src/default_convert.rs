@@ -23,16 +23,18 @@ impl DefaultConverter {
         walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
         current_class: Option<&str>,
         class_fields: Option<&HashSet<String>>,
+        superclass: Option<&str>,
     ) -> Result<Vec<GoNode>, WalkError> {
         match node {
             // ── Declarations ────────────────────────────────────────
 
             JavaNode::ClassDecl {
                 name,
+                superclass,
                 members,
                 span,
                 ..
-            } => convert_decl::convert_class_decl(self, name, members, span, walk_child),
+            } => convert_decl::convert_class_decl(self, name, superclass.as_ref(), members, span, walk_child),
 
             JavaNode::InterfaceDecl {
                 name,
@@ -193,6 +195,8 @@ impl DefaultConverter {
                 arguments,
                 span,
                 walk_child,
+                current_class,
+                superclass,
             ),
 
             JavaNode::FieldAccessExpr {
@@ -269,6 +273,10 @@ impl DefaultConverter {
 
             JavaNode::TypeRef { java_type, span } => {
                 convert_expr::convert_type_ref(java_type, span)
+            }
+
+            JavaNode::SynchronizedStmt { lock, body, span } => {
+                convert_stmt::convert_synchronized_stmt(lock, body, span, walk_child)
             }
         }
     }

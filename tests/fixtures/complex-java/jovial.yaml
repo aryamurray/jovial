@@ -9,8 +9,6 @@ target:
 extractor:
   skip: true
 
-plugins: []
-
 options:
   error_handling: continue
   verbose: true

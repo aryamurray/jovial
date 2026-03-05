@@ -9,6 +9,7 @@ use crate::walker::WalkError;
 pub(crate) fn convert_class_decl(
     _converter: &DefaultConverter,
     name: &str,
+    superclass: Option<&JavaType>,
     members: &[JavaNode],
     span: &Span,
     walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
@@ -40,8 +41,13 @@ pub(crate) fn convert_class_decl(
         }
     }
 
+    let embedded = superclass
+        .map(|sc| vec![convert_java_type(sc)])
+        .unwrap_or_default();
+
     let mut result = vec![GoNode::StructDecl {
         name: name.to_string(),
+        embedded,
         fields,
         span: span.clone(),
     }];
@@ -91,22 +97,21 @@ pub(crate) fn convert_enum_decl(
         code: format!("type {} string", name),
         span: span.clone(),
     });
-    for (i, constant) in constants.iter().enumerate() {
-        let value_node = if i == 0 {
-            GoNode::Ident {
-                name: "iota".to_string(),
-                span: span.clone(),
-            }
-        } else {
-            GoNode::Ident {
-                name: "".to_string(),
-                span: span.clone(),
-            }
-        };
-        result.push(GoNode::ConstDecl {
+    let decls: Vec<GoNode> = constants
+        .iter()
+        .map(|constant| GoNode::ConstDecl {
             name: format!("{}_{}", name, constant),
             const_type: Some(simple_go_type(name)),
-            value: Box::new(value_node),
+            value: Box::new(GoNode::Literal {
+                value: jovial_ast::go::GoLiteralValue::String(constant.clone()),
+                span: span.clone(),
+            }),
+            span: span.clone(),
+        })
+        .collect();
+    if !decls.is_empty() {
+        result.push(GoNode::ConstBlock {
+            decls,
             span: span.clone(),
         });
     }
@@ -185,16 +190,34 @@ pub(crate) fn convert_constructor_decl(
     // Post-process: fix self-assignments like `t.Title = t.Title` → `t.Title = title`
     fix_constructor_self_assignments(&mut go_body, &receiver, &field_to_param);
 
-    let has_return = go_body.iter().any(|n| matches!(n, GoNode::ReturnStmt { .. }));
-    if !has_return {
-        go_body.push(GoNode::ReturnStmt {
-            values: vec![GoNode::UnaryExpr {
+    // Prepend: t := &ClassName{}
+    go_body.insert(
+        0,
+        GoNode::AssignStmt {
+            lhs: vec![GoNode::Ident {
+                name: receiver.clone(),
+                span: span.clone(),
+            }],
+            rhs: vec![GoNode::UnaryExpr {
                 op: GoUnaryOp::Addr,
                 operand: Box::new(GoNode::CompositeLit {
                     lit_type: simple_go_type(class_name),
                     elements: vec![],
                     span: span.clone(),
                 }),
+                span: span.clone(),
+            }],
+            define: true,
+            span: span.clone(),
+        },
+    );
+
+    // Append or fix return: use `return t` instead of `return &ClassName{}`
+    let has_return = go_body.iter().any(|n| matches!(n, GoNode::ReturnStmt { .. }));
+    if !has_return {
+        go_body.push(GoNode::ReturnStmt {
+            values: vec![GoNode::Ident {
+                name: receiver.clone(),
                 span: span.clone(),
             }],
             span: span.clone(),

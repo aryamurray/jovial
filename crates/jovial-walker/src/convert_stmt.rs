@@ -57,6 +57,45 @@ pub(crate) fn convert_if_stmt(
         None => None,
     };
 
+    // If condition is a type assertion (from instanceof), convert to:
+    //   if _, ok := expr.(Type); ok { ... }
+    if let GoNode::TypeAssertExpr {
+        expr: assert_expr,
+        assert_type,
+        span: assert_span,
+    } = &cond
+    {
+        let init = GoNode::AssignStmt {
+            lhs: vec![
+                GoNode::Ident {
+                    name: "_".to_string(),
+                    span: assert_span.clone(),
+                },
+                GoNode::Ident {
+                    name: "ok".to_string(),
+                    span: assert_span.clone(),
+                },
+            ],
+            rhs: vec![GoNode::TypeAssertExpr {
+                expr: assert_expr.clone(),
+                assert_type: assert_type.clone(),
+                span: assert_span.clone(),
+            }],
+            define: true,
+            span: assert_span.clone(),
+        };
+        return Ok(vec![GoNode::IfStmt {
+            init: Some(Box::new(init)),
+            condition: Box::new(GoNode::Ident {
+                name: "ok".to_string(),
+                span: span.clone(),
+            }),
+            body,
+            else_body,
+            span: span.clone(),
+        }]);
+    }
+
     Ok(vec![GoNode::IfStmt {
         init: None,
         condition: Box::new(cond),
@@ -270,4 +309,36 @@ pub(crate) fn convert_throw_stmt(
         values: expr_nodes,
         span: span.clone(),
     }])
+}
+
+pub(crate) fn convert_synchronized_stmt(
+    lock: &JavaNode,
+    body: &JavaNode,
+    span: &Span,
+    walk_child: &dyn Fn(&JavaNode) -> Result<Vec<GoNode>, WalkError>,
+) -> Result<Vec<GoNode>, WalkError> {
+    // Emit as comment placeholder + inline body
+    let lock_str = walk_child(lock)?
+        .into_iter()
+        .next()
+        .and_then(|n| {
+            if let GoNode::Ident { name, .. } = &n {
+                Some(name.clone())
+            } else if let GoNode::SelectorExpr { field, .. } = &n {
+                Some(field.clone())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "lock".to_string());
+
+    let mut result = vec![GoNode::RawCode {
+        code: format!("// synchronized({})", lock_str),
+        span: span.clone(),
+    }];
+
+    // Walk body and emit statements inline
+    result.extend(flatten_block(walk_child(body)?));
+
+    Ok(result)
 }

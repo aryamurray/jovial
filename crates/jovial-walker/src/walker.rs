@@ -64,7 +64,7 @@ impl<'a> Walker<'a> {
 
     /// Walk a single Java node.
     pub fn walk_node(&self, node: &JavaNode) -> Result<Vec<GoNode>, WalkError> {
-        self.walk_node_internal(node, None, None)
+        self.walk_node_internal(node, None, None, None)
     }
 
     /// Walk a single Java node within a class context.
@@ -78,7 +78,7 @@ impl<'a> Walker<'a> {
         class_name: &str,
         class_fields: &HashSet<String>,
     ) -> Result<Vec<GoNode>, WalkError> {
-        self.walk_node_internal(node, Some(class_name), Some(class_fields))
+        self.walk_node_internal(node, Some(class_name), Some(class_fields), None)
     }
 
     fn walk_node_internal(
@@ -86,6 +86,7 @@ impl<'a> Walker<'a> {
         node: &JavaNode,
         class_name: Option<&str>,
         class_fields: Option<&HashSet<String>>,
+        superclass: Option<&str>,
     ) -> Result<Vec<GoNode>, WalkError> {
         // 1. Try plugin dispatch
         let ctx = MatchContext {
@@ -97,7 +98,7 @@ impl<'a> Walker<'a> {
         if let Some(plugin) = self.registry.find_match(&ctx) {
             // Plugin walk_child preserves class context
             let walk_fn = |child: &JavaNode| -> Result<Vec<GoNode>, jovial_plugin::error::PluginError> {
-                self.walk_node_internal(child, class_name, class_fields)
+                self.walk_node_internal(child, class_name, class_fields, superclass)
                     .map_err(|e| jovial_plugin::error::PluginError::WalkError(e.to_string()))
             };
             let mut transform_ctx =
@@ -109,7 +110,7 @@ impl<'a> Walker<'a> {
 
         // 2. For ClassDecl, extract field names and establish class context
         //    so that children get both plugin dispatch AND class context.
-        if let JavaNode::ClassDecl { name, members, .. } = node {
+        if let JavaNode::ClassDecl { name, superclass: sc, members, .. } = node {
             let mut field_names = HashSet::new();
             for member in members {
                 if let JavaNode::FieldDecl {
@@ -119,20 +120,65 @@ impl<'a> Walker<'a> {
                     field_names.insert(field_name.clone());
                 }
             }
+            let sc_name = sc.as_ref().map(|s| s.name.as_str());
             return self.default_converter.convert(
                 node,
-                &|child| self.walk_node_internal(child, Some(name), Some(&field_names)),
+                &|child| self.walk_node_internal(child, Some(name), Some(&field_names), sc_name),
                 Some(name),
                 Some(&field_names),
+                sc_name,
             );
         }
 
-        // 3. Fall back to default converter with inherited class context
+        // 3. For MethodDecl/ConstructorDecl with parameters that shadow field names,
+        //    create a filtered class_fields that excludes parameter names so that
+        //    bare references inside the body resolve to the parameter, not the field.
+        if let Some(fields) = class_fields {
+            let param_names: Option<Vec<&str>> = match node {
+                JavaNode::MethodDecl { parameters, .. }
+                | JavaNode::ConstructorDecl { parameters, .. } => {
+                    let names: Vec<&str> = parameters
+                        .iter()
+                        .filter_map(|p| {
+                            if let JavaNode::Parameter { name, .. } = p {
+                                Some(name.as_str())
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    if names.iter().any(|n| fields.contains(*n)) {
+                        Some(names)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            };
+
+            if let Some(names) = param_names {
+                let filtered: HashSet<String> = fields
+                    .iter()
+                    .filter(|f| !names.contains(&f.as_str()))
+                    .cloned()
+                    .collect();
+                return self.default_converter.convert(
+                    node,
+                    &|child| self.walk_node_internal(child, class_name, Some(&filtered), superclass),
+                    class_name,
+                    Some(&filtered),
+                    superclass,
+                );
+            }
+        }
+
+        // 4. Fall back to default converter with inherited class context
         self.default_converter.convert(
             node,
-            &|child| self.walk_node_internal(child, class_name, class_fields),
+            &|child| self.walk_node_internal(child, class_name, class_fields, superclass),
             class_name,
             class_fields,
+            superclass,
         )
     }
 }

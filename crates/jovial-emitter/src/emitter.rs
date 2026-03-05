@@ -201,6 +201,13 @@ impl GoEmitter {
                 }
             }
             GoNode::RawCode { code, .. } => Ok(code.clone()),
+            GoNode::TypeAssertExpr {
+                expr, assert_type, ..
+            } => {
+                let expr_str = self.emit_expr_inline(expr)?;
+                let type_str = self.emit_type(assert_type);
+                Ok(format!("{expr_str}.({type_str})"))
+            }
             _ => Err(EmitError::EmitFailed(format!(
                 "cannot inline expression: {node:?}"
             ))),
@@ -339,6 +346,31 @@ impl GoEmitter {
         let val = self.emit_expr_inline(value)?;
         line.push_str(&format!(" = {val}"));
         self.fmt.write_line(&line);
+        Ok(())
+    }
+
+    fn emit_const_block(&mut self, decls: &[GoNode]) -> Result<(), EmitError> {
+        self.fmt.write_line("const (");
+        self.fmt.indent();
+        for decl in decls {
+            if let GoNode::ConstDecl {
+                name,
+                const_type,
+                value,
+                ..
+            } = decl
+            {
+                let mut line = name.clone();
+                if let Some(t) = const_type {
+                    line.push_str(&format!(" {}", self.emit_type(t)));
+                }
+                let val = self.emit_expr_inline(value)?;
+                line.push_str(&format!(" = {val}"));
+                self.fmt.write_line(&line);
+            }
+        }
+        self.fmt.dedent();
+        self.fmt.write_line(")");
         Ok(())
     }
 
@@ -525,6 +557,15 @@ impl GoEmitter {
                 }
                 Ok(s)
             }
+            GoNode::IncDecStmt {
+                operand,
+                is_increment,
+                ..
+            } => {
+                let expr = self.emit_expr_inline(operand)?;
+                let op = if *is_increment { "++" } else { "--" };
+                Ok(format!("{expr}{op}"))
+            }
             _ => self.emit_expr_inline(node),
         }
     }
@@ -641,9 +682,12 @@ impl GoEmitter {
         Ok(())
     }
 
-    fn emit_struct_decl(&mut self, name: &str, fields: &[GoNode]) -> Result<(), EmitError> {
+    fn emit_struct_decl(&mut self, name: &str, embedded: &[GoType], fields: &[GoNode]) -> Result<(), EmitError> {
         self.fmt.write_line(&format!("type {name} struct {{"));
         self.fmt.indent();
+        for embed in embedded {
+            self.fmt.write_line(&self.emit_type(embed));
+        }
         for field in fields {
             self.emit_node(field)?;
         }
@@ -754,8 +798,8 @@ impl GoEmitter {
                     self.emit_func_decl(name, receiver, params, returns, body)?;
                 }
             }
-            GoNode::StructDecl { name, fields, .. } => {
-                self.emit_struct_decl(name, fields)?;
+            GoNode::StructDecl { name, embedded, fields, .. } => {
+                self.emit_struct_decl(name, embedded, fields)?;
             }
             GoNode::InterfaceDecl { name, methods, .. } => {
                 self.emit_interface_decl(name, methods)?;
@@ -783,6 +827,18 @@ impl GoEmitter {
                 ..
             } => {
                 self.emit_const_decl(name, const_type, value)?;
+            }
+            GoNode::ConstBlock { decls, .. } => {
+                self.emit_const_block(decls)?;
+            }
+            GoNode::IncDecStmt {
+                operand,
+                is_increment,
+                ..
+            } => {
+                let expr = self.emit_expr_inline(operand)?;
+                let op = if *is_increment { "++" } else { "--" };
+                self.fmt.write_line(&format!("{expr}{op}"));
             }
             GoNode::ReturnStmt { values, .. } => {
                 self.emit_return_stmt(values)?;
@@ -846,7 +902,8 @@ impl GoEmitter {
             | GoNode::BinaryExpr { .. }
             | GoNode::UnaryExpr { .. }
             | GoNode::KeyValue { .. }
-            | GoNode::TypeRef { .. } => {
+            | GoNode::TypeRef { .. }
+            | GoNode::TypeAssertExpr { .. } => {
                 self.emit_expr_to_fmt(node)?;
                 self.fmt.flush_line();
             }
@@ -966,6 +1023,7 @@ mod tests {
         let mut emitter = GoEmitter::new();
         let node = GoNode::StructDecl {
             name: "User".into(),
+            embedded: vec![],
             fields: vec![
                 GoNode::FieldDecl {
                     name: "Name".into(),
